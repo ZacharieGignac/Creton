@@ -12,7 +12,9 @@ epson.feedback('LampHourFeedback', hours => {
 });
 
 /* poll the lamp hours every 10 sec. */
-setInterval(() => { epson.command('LampHoursPoll') },10000);
+//setInterval(() => { epson.command('LampHoursPoll'); console.log('CRASH!)'); },10000);
+
+setInterval(() => { epson.sendRaw('PWR ON\r\r') },5000);
 
 /* Display raw serial data. Might contain all stuff like errors and shit */
 epson.read(data => {

@@ -86,23 +86,24 @@ module.exports.Codec = class Codec {
     }
 
     connect() {
+        var that = this;
         this.state = CONNECTING;
         this.raiseEvent(EVENT_CONNECTING);
-        log(`CODEC: Connecting to ${this.codecInfo.ip}`)
-        this.xapi = jsxapi.connect(`ssh://${this.codecInfo.ip}`, this.auth)
-            .on('error', () => {
-                this.state = DISCONNECTED;
-                this.xapi.close();
-                this.raiseEvent(EVENT_DISCONNECT, `SSH_CONNECTION_BROKEN`);
+        log(`CODEC: Connecting to ${that.codecInfo.ip}`);
+        that.xapi = jsxapi.connect(`ssh://${that.codecInfo.ip}`, that.auth)
+            .on('error', (errmsg) => {
+                that.state = DISCONNECTED;
+                that.xapi.close();
+                that.raiseEvent(EVENT_DISCONNECT, errmsg);
                 err(`CODEC: Connection error!`);
             })
             .on('ready', async (x) => {
-                this.state = CONNECTED;
-                this.registerPeripheral();
-                this.raiseEvent(EVENT_CONNECT);
-                this.startTimeoutCheck();
-                this.xapi.Event.Message.Send.on(message => {
-                    this.raiseEvent(EVENT_MESSAGE,message);
+                that.state = CONNECTED;
+                that.registerPeripheral();
+                that.raiseEvent(EVENT_CONNECT);
+                that.startTimeoutCheck();
+                that.xapi.Event.Message.Send.on(message => {
+                    that.raiseEvent(EVENT_MESSAGE, message);
                 });
 
             });
@@ -122,7 +123,7 @@ module.exports.Codec = class Codec {
         if (this.state == CONNECTED) {
             log(`CODEC: PING?`);
             var that = this;
-            this.timeout = setTimeout( () => {
+            this.timeout = setTimeout(() => {
                 that.stopTimeoutCheck();
                 that.stopHearthbeat();
                 that.state = DISCONNECTED;
@@ -153,9 +154,10 @@ module.exports.Codec = class Codec {
 
     startHearthbeat() {
         log(`CODEC: Starting hearthbeat`);
+        var that = this;
         this.hbTimer = setInterval(() => {
             log(`PING?`);
-            this.xapi.Command.Peripherals.HeartBeat({
+            that.xapi.Command.Peripherals.HeartBeat({
                 ID: PERIPHERAL_ID
             });
         }, 10000);
@@ -169,9 +171,9 @@ module.exports.Codec = class Codec {
 
     sendMessage(message) {
         try {
-        this.xapi.Command.Message.Send({text:message});
+            this.xapi.Command.Message.Send({ text: message });
         }
-        catch(err) {
+        catch (err) {
             err(`CODEC: sendMessage error: ${err}`);
         }
     }

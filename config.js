@@ -1,10 +1,10 @@
 module.exports.config = {
-    debug:false,
+    debug:true,
     codec: {
         ip: '10.1.48.232', //your codec IP
         auth: {
             username: 'username',   //username
-            password: 'password'    //password
+            password: 'pass'    //password
         },
         info: {
             ip:'10.1.48.247',

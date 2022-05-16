@@ -18,20 +18,23 @@ var triggersTimers = [];
 var codec = undefined;
 
 
+
 function writeSerial(targetPort, command) {
+    var strcmd = command.replace(`\r`,`\\r`);
+    if (DEBUG) console.log(`writeSerial port=${targetPort} command=${strcmd}`);
     try {
         for (const port of cretonconfig.config.serialPorts) {
-            if (targetPort == port.name) {
-                //console.log(`Writing ${command} to ${targetPort}`);
+            if (targetPort == port.name) { 
                 port.serialport.write(command);
             }
         }
     }
     catch (err) {
-        console.log(`Error writing ${command} to port ${targetPort}: ${err}`);
+        console.log(`Error writing "${strcmd}" to port "${targetPort}": ${err}`);
     }
 }
 function serialCommand(targetPort, command, args) {
+    if (DEBUG) console.log(`Serial command: targetPort=${targetPort} command=${command} args=${args}`);
     for (const port of cretonconfig.config.serialPorts) {
         if (targetPort == port.name) {
             port.serialport.command(command, args);
@@ -114,7 +117,7 @@ function setupSerial() {
 
 function messageReceived(message) {
     try {
-        var jsm = JSON.parse(value.Text);
+        var jsm = JSON.parse(message.Text);
         switch (jsm.$.t) {
             case 5:
                 writeSerial(jsm.$.p, jsm.$.d);
@@ -124,7 +127,7 @@ function messageReceived(message) {
         }
     }
     catch (e) {
-        processTriggers(value.Text);
+        processTriggers(message.Text);
     }
 }
 
@@ -148,7 +151,9 @@ function init() {
         console.log(`CRETON: Codec is connecting.`);
     });
 
-    codec.on('message', message => messageReceived(message));
+    codec.on('message', message => {
+        messageReceived(message);
+    });
 
     codec.connect();
 
