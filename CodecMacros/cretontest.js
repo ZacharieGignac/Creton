@@ -1,7 +1,7 @@
 import xapi from 'xapi';
 
-const eap = require('./EasyAsPi'); //require the lib
-var epson = new eap.SerialPort('Projector'); //Create a device listener, name in pi's config file
+const creton = require('./cretonclient'); //require the lib
+var epson = new creton.SerialPort('Projector'); //Create a device listener, name in pi's config file
 
 /* subscribe to the feedback for lamp hours and set the value of a widget */
 epson.feedback('LampHourFeedback', hours => {
