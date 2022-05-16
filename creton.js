@@ -141,6 +141,7 @@ function init() {
 
     codec.on('disconnect', reason => {
         console.log(`CRETON: Codec is disconnected. ReasoN: ${reason}`);
+        codec.connect();
     });
 
     codec.on('connecting', () => {
