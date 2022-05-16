@@ -2,5 +2,22 @@
   "dependencies": {
     "jsxapi": "^5.1.1",
     "serialport": "^9.2.8"
-  }
+  },
+  "name": "creton",
+  "description": "Ajout de ports série sur Webex RoomKit via RPI",
+  "version": "1.0.0",
+  "main": "creton.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://@github.com/ZacharieGignac/Creton.git"
+  },
+  "author": "Zacharie Gignac",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/ZacharieGignac/Creton/issues"
+  },
+  "homepage": "https://github.com/ZacharieGignac/Creton#readme"
 }

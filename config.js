@@ -3,15 +3,14 @@ module.exports.config = {
     codec: {
         ip: '10.1.48.232', //your codec IP
         auth: {
-            username: 'zagig',   //username
-            password: 'Ieidm2f++'    //password
+            username: 'username',   //username
+            password: 'password'    //password
+        },
+        info: {
+            ip:'10.1.48.247',
+            serialNumber:'123456789',
+            name:'Creton'
         }
-    },
-    peripheral:{
-        id:'crouton',
-        name:'Crouton',
-        softwareVersion:'v1.0',
-        serialNumber:'1234567890'
     },
     serialPorts:[
         /* Epson projector, using no driver, only raw read and write */
