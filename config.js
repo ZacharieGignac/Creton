@@ -1,16 +1,22 @@
 module.exports.config = {
     debug:true,
     codec: {
-        ip: '10.1.48.232', //your codec IP
         auth: {
             username: 'username',   //username
-            password: 'pass'    //password
+            password: 'password'    //password
         },
         info: {
-            ip:'10.1.48.247',
+            ip:'10.1.48.232',
             serialNumber:'123456789',
             name:'Creton'
         }
+    },
+    telemetry:{
+        broker:'10.1.48.250',
+        clientId:'creton-csl1640',
+        username:'username',
+        password:'password',
+        basepath:'systems/csl1640'
     },
     serialPorts:[
         /* Epson projector, using no driver, only raw read and write */
@@ -50,7 +56,9 @@ module.exports.config = {
             serialPort:'monitor', //Name of the serial port to use (see up there)
             raw:'POWR0001\r',         //Raw command to send to the serial port
             repeat:5000,            //Repeat this commande every X ms
-            cancel:'tv_off'       //Cancel another trigger repeat, match its id
+            cancel:'tv_off',       //Cancel another trigger repeat, match its id,
+            telemetrypath:'/monitor/power',
+            telemetryvalue:'1'
         },
         {
             id:'tv_off',
@@ -58,7 +66,9 @@ module.exports.config = {
             serialPort:'monitor',
             raw:'POWR0000\r',
             repeat:5000,
-            cancel:'tv_on'
+            cancel:'tv_on',
+            telemetrypath:'/monitor/power',
+            telemetryvalue:'0'
         },
         {
             id:'ProjOn',
@@ -66,7 +76,9 @@ module.exports.config = {
             serialPort:'projector',
             raw:'PWR ON\r',
             repeat:5000,
-            cancel:'ProjOff'
+            cancel:'ProjOff',
+            telemetrypath:'/projector/power',
+            telemetryvalue:'1'
         },
         {
             id:'ProjOff',
@@ -75,7 +87,9 @@ module.exports.config = {
             raw:'PWR OFF\r',
             repeat:5000,
             cancel:'ProjOn',
-            onStart:true
+            onStart:true,
+            telemetrypath:'/projector/power',
+            telemetryvalue:'0'
         }
     ]
 }

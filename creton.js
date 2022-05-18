@@ -2,6 +2,16 @@ const cretonconfig = require('./config');
 const eapserial = require('./serial');
 const webexroomssh = require('./webexroomssh');
 
+const tel = require('./telemetry');
+
+
+console.log('ENTRY POINT');
+tel.init(cretonconfig.config.telemetry);
+tel.connect(() => {
+    console.log(`MQTT CONNECTED!!!!`);
+});
+
+
 
 const MSG_INIT_START = { $: { t: 1 } };
 const MSG_INIT_STOP = { $: { t: 2 } };
@@ -71,6 +81,9 @@ function processTriggers(text) {
                     } catch { }
                 }
                 writeSerial(trigger.serialPort, trigger.raw);
+                if (trigger.telemetrypath && trigger.telemetryvalue) {
+                    tel.publish(trigger.telemetrypath,trigger.telemetryvalue);
+                }
                 var intervalTrigger = trigger;
                 if (DEBUG) console.log(`Starting timer ${trigger.id}`);
                 clearInterval(triggersTimers[trigger.id]);
