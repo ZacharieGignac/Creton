@@ -35,7 +35,7 @@ Events:
     * message [message]
 
 */
-var debug_log = true;
+var DEBUG = false;
 
 const PERIPHERAL_ID = 'WebexRoomSSH';
 const PERIPHERAL_SOFTWAREVERSION = 'v1.0';
@@ -51,19 +51,19 @@ const CONNECTING = 2;
 
 
 function log(text) {
-    if (debug_log) console.log(text);
+    if (DEBUG) console.log(text);
 }
 function warn(text) {
-    if (debug_log) console.warn(text);
+    console.warn(text);
 }
 function err(text) {
-    if (debug_log) console.error(text);
+    console.error(text);
 }
 
 module.exports.Codec = class Codec {
     constructor(codecInfo, auth, debug = false) {
         log('CODEC: initializing');
-        debug_log = debug;
+        DEBUG = debug;
         this.state = DISCONNECTED;
         this.xapi = undefined;
         this.codecInfo = codecInfo;
@@ -89,7 +89,7 @@ module.exports.Codec = class Codec {
         var that = this;
         this.state = CONNECTING;
         this.raiseEvent(EVENT_CONNECTING);
-        log(`CODEC: Connecting to ${that.codecInfo.ip}`);
+        console.log(`CODEC: Connecting to ${that.codecInfo.ip}`);
         that.xapi = jsxapi.connect(`ssh://${that.codecInfo.ip}`, that.auth)
             .on('error', (errmsg) => {
                 that.state = DISCONNECTED;
