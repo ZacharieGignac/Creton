@@ -2,11 +2,11 @@ module.exports.config = {
     debug: false,
     codec: {
         auth: {
-            username: 'username',   //username
-            password: 'password    //password
+            username: 'zagig',   //username
+            password: 'Ieidm2f++'    //password
         },
         info: {
-            ip: '10.1.48.232',
+            ip: '10.247.179.215',
             serialNumber: '123456789',
             name: 'Creton'
         }
@@ -14,8 +14,8 @@ module.exports.config = {
     telemetry: {
         broker: '10.1.48.250',
         clientId: 'creton-csl1640',
-        username: 'username',
-        password: 'password',
+        username: 'csl1640',
+        password: 'Y3NsMTY0MA==',
         basepath: 'systems/csl1640'
     },
     serialPorts: [

@@ -3,7 +3,7 @@ module.exports.config = {
     codec: {
         auth: {
             username: 'username',   //username
-            password: 'password    //password
+            password: 'password'    //password
         },
         info: {
             ip: '10.1.48.232',
