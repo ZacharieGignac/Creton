@@ -170,12 +170,11 @@ module.exports.Codec = class Codec {
     }
 
     sendMessage(message) {
-        try {
-            this.xapi.Command.Message.Send({ text: message });
-        }
-        catch (err) {
-            err(`CODEC: sendMessage error: ${err}`);
-        }
+        //TEMPORARY FIX, REPLACE ":" WITH NOTHOMG
+        //message = message.toString().replace(/:/g,'');
+        this.xapi.Command.Message.Send({ text: message }).catch(err => {
+            console.log(`codec.sendMessage ERROR: ${err.message}`);
+        });
     }
 }
 

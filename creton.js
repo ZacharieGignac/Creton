@@ -102,21 +102,24 @@ function setupSerial() {
     for (const port of cretonconfig.config.serialPorts) {
         try {
             port.serialport = new eapserial.SerialPort(port, DEBUG);
+            
             if (port.read) {
                 port.serialport.read(data => {
-                    codec.sendMessage(getDataPacket(port.name, data));
                     processSerialData(port.name,data);
                 });
                 port.serialport.feedback(feedback => {
+                    
                     var x = getFeedbackPacket(port.name, feedback.f, feedback.d);
-                    codec.sendMessage(getFeedbackPacket(port.name, feedback.f, feedback.d));
-                });
+                    codec.sendMessage(x);
+                });                
             }
+            
         }
         catch (err) {
             console.log(`SERIAL INIT ERROR: ` + err);
         }
     }
+    
     for (const trigger of cretonconfig.config.triggers) {
         if (trigger.onStart) {
             log(`Found on-start trigger. Executing ${trigger.id}`);
@@ -125,19 +128,22 @@ function setupSerial() {
     }
 
     for (const sp of cretonconfig.config.serialParsing) {
+        
         if (sp.serialPort.substring(0,5) == 'fake-') {
             setInterval(()=> {
                 processSerialData(sp.serialPort,sp.fakeData);
             },5000);
         }
+        
     }
+    
 }
 function processSerialData(port, data) {
     for (const sp of cretonconfig.config.serialParsing) {
         var telemetryValue = sp.match(data);
         if (telemetryValue) {
             if (sp.telemetrypath) {
-                console.log('publishing telemetry');
+                log(`publishing telemetry ${sp.telemetrypath}=${telemetryValue}`);
                 tel.publish(sp.telemetrypath,telemetryValue);
             }
         }

@@ -54,6 +54,7 @@ exports.init = function (config, debug=false) {
     log(`TELEMETRY: Init started...`);
     broker = config.broker;
     basePath = config.basepath;
+    console.log(config.clientId);
     mqttoptions = {
         clientId: config.clientId + Math.floor(Math.random() * 1000000),
         username: config.username,
