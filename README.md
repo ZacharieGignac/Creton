@@ -15,7 +15,7 @@ Testé avec les adaptateurs série-USB Startech (avec le contrôleur TexasIntrum
 Les modules ne sont peut-être pas compilés avec la même architecture que votre système, donc il est préférable de les retirer et de les ajouter à nouveau:
 ```
 npm uninstall serialport && npm uninstall jsxapi
-npm install serialport && npm install serialport
+npm install serialport && npm install jsxapi
 ```
 
 # Fichier de configuration config.js
