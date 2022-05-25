@@ -18,6 +18,7 @@ const DEBUG = cretonconfig.config.debug;
 var triggersTimers = [];
 
 var codec = undefined;
+var serialIsSet = false;
 
 function log(text) {
     if (cretonconfig.config.debug) {
@@ -136,7 +137,7 @@ function setupSerial() {
         }
         
     }
-    
+    serialIsSet = true;
 }
 function processSerialData(port, data) {
     for (const sp of cretonconfig.config.serialParsing) {
@@ -174,12 +175,16 @@ function init() {
     codec = new webexroomssh.Codec(info, auth, cretonconfig.config.debug);
     codec.on('connect', () => {
         console.log(`CRETON: Codec is connected!`);
-        setupSerial();
+	if (!serialIsSet) {
+            setupSerial();
+        }
     });
 
     codec.on('disconnect', reason => {
         console.log(`CRETON: Codec is disconnected. Reason: ${reason}`);
-        codec.connect();
+	setTimeout(() => {
+	    codec.connect();
+	},15000);
     });
 
     codec.on('connecting', () => {

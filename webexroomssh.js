@@ -96,6 +96,8 @@ module.exports.Codec = class Codec {
                 that.xapi.close();
                 that.raiseEvent(EVENT_DISCONNECT, errmsg);
                 err(`CODEC: Connection error!`);
+		this.stopHearthbeat();
+		that.xapi.close();
             })
             .on('ready', async (x) => {
                 that.state = CONNECTED;
@@ -105,7 +107,7 @@ module.exports.Codec = class Codec {
                 that.xapi.Event.Message.Send.on(message => {
                     that.raiseEvent(EVENT_MESSAGE, message);
                 });
-
+		this.startHearthbeat();
             });
     }
 
@@ -137,7 +139,6 @@ module.exports.Codec = class Codec {
             if (this.doTimeoutCheck) {
                 setTimeout(() => { that.timeoutCheck(); }, 10000);
             }
-
         }
     }
 

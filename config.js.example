@@ -2,105 +2,110 @@ module.exports.config = {
     debug: false,
     codec: {
         auth: {
-            username: 'username',   //username
-            password: 'password'    //password
+            username: 'codecusername',   //username
+            password: 'codecpassword'    //password
         },
         info: {
-            ip: '10.1.48.232',
-            serialNumber: '123456789',
+            ip: '1.1.1.1',
+            serialNumber: 'SerialNumberHere',
             name: 'Creton'
         }
     },
     telemetry: {
-        broker: '10.1.48.250',
-        clientId: 'creton-csl1640',
-        username: 'username',
-        password: 'password',
-        basepath: 'systems/csl1640'
+        broker: 'mqtt broker host/ip',
+	    cliendId: 'clientid',
+        username: 'telemetryusername',
+        password: 'telemetrypassword',
+        basepath: 'systems/systemname'
     },
     serialPorts: [
-        /* Epson projector, using no driver, only raw read and write */
         {
-            name: 'projector',
-            device: '/dev/serial/by-id/usb-Texas_Instruments_TUSB3410_EECode_Ser_10002194-if00-port0',
-            baudRate: 9600,
-            delimiter: '\r',
-            read: false
-        },
-
-        // Epson projector, using the Crestron driver, slightly modified. Open the .json file for more comments on modifications
-        /*
-        { 
-            name:'monitor',  //Name of this device. You will need to refer to this name on the codec
-            device:'/dev/ttyUSB0',  //Serial port. I'm using a prolific USB-SERIAL adapter. Don't know if it works with other types of ports
+            name:'monitor',
+            device:'/dev/serial/by-id/usb-Prolific_Technology_Inc._USB-Serial_Controller_D_00000EBA-if00-port0',
             baudRate:9600,
-            timeBetweenCommands:250,
-            delimiter:'\r'  //Command delimiter.
-        }
-        */
-
-        /* Sharp monitor, using the Crestron driver, slightly modified. Open the .json file for more comments on modifications
+            delimiter:'\r',
+            read:false
+        },
         {
-            name:'tv',
-            device:'/dev/ttyUSB0',
-            driver:'Sharp-PN-LE601.drv.json',
-            //No extra delimiter for that one
+            name:'projector',
+            device:'/dev/serial/by-id/usb-Texas_Instruments_TUSB3410_EECode_Ser_10002194-if00-port0',
+            baudRate:9600,
+            delimiter:'\r',
+            read:true
         }
-        */
     ],
-    /* The special text "@CROUTON_ONSTART" (case-sensitive) is matched on app startup */
-    triggers: [
+    triggers:[
         {
-            id: 'tv_on',           //id for this trigger
-            text: 'TV_ON',         //text to match from the codec (xapi.Command.Message)
-            serialPort: 'monitor', //Name of the serial port to use (see up there)
-            raw: 'POWR0001\r',         //Raw command to send to the serial port
-            repeat: 5000,            //Repeat this commande every X ms
-            cancel: 'tv_off',       //Cancel another trigger repeat, match its id,
-            telemetrypath: '/monitor/power',
-            telemetryvalue: '1'
+            id:'tv_power_on',           //id for this trigger
+            text:'TV_POWER_ON',         //text to match from the codec (xapi.Command.Message)
+            serialPort:'monitor', //Name of the serial port to use (see up there)
+            raw:'ka 01 01\r',         //Raw command to send to the serial port
+            repeat:5000,            //Repeat this commande every X ms
+	    telemetrypath:'/dev/monitor/power',
+            telemetryvalue:'1',
+            cancel:'tv_power_off',       //Cancel another trigger repeat, match its id
         },
         {
-            id: 'tv_off',
-            text: 'TV_OFF',
-            serialPort: 'monitor',
-            raw: 'POWR0000\r',
-            repeat: 5000,
-            cancel: 'tv_on',
-            telemetrypath: '/monitor/power',
-            telemetryvalue: '0'
+            id:'tv_power_off',
+            text:'TV_POWER_OFF',
+            serialPort:'monitor',
+            raw:'ka 01 00\r',
+            repeat:5000,
+            cancel:'tv_power_on',
+            onStart:true,
+            telemetrypath:'/dev/monitor/power',
+            telemetryvalue:'0'
         },
         {
-            id: 'ProjOn',
-            text: 'PROJ_POWER_ON',
-            serialPort: 'projector',
-            raw: 'PWR ON\r',
-            repeat: 5000,
-            cancel: 'ProjOff',
-            telemetrypath: '/projector/power',
-            telemetryvalue: '1'
+            id:'proj_power_on',
+            text:'PROJ_POWER_ON',
+            serialPort:'projector',
+            raw:'PWR ON\r',
+            repeat:5000,
+            cancel:'proj_power_off',
+            telemetrypath:'/dev/projector/power',
+            telemetryvalue:'1'
         },
         {
-            id: 'ProjOff',
-            text: 'PROJ_POWER_OFF',
-            serialPort: 'projector',
-            raw: 'PWR OFF\r',
-            repeat: 5000,
-            cancel: 'ProjOn',
-            onStart: true,
-            telemetrypath: '/projector/power',
-            telemetryvalue: '0'
-        }
+            id:'proj_power_off',
+            text:'PROJ_POWER_OFF',
+            serialPort:'projector',
+            raw:'PWR OFF\r',
+            repeat:5000,
+            cancel:'proj_power_on',
+            onStart:true,
+	    telemetrypath:'/dev/projector/power',
+            telemetryvalue:'0'
+        },
+	{
+	    id:'lampqquery',
+	    text:'PROJ_LAMP_QUERY',
+	    serialPort:'projector',
+	    raw:'LAMP?\r',
+	    repeat:'66000',
+	    onStart:true
+	}
+/*,
+	{
+	    id:'query_lamp_hours',
+            text:'QUERY_LAMP_HOURS',
+            serialPort:'projector',
+            raw:'LAMP?\r',
+            repeat:300000,
+            onStart:true
+	}
+*/
     ],
     serialParsing: [
-        
+        /*
         {
             id: 'fake-lamphour-data-to-test', //unique ID
             serialPort:'fake-lh',             //any serial port starting with with "fake-" will be faked
             fakeData:':LAMP=3000',            //fake data that will be emitted every 5s
             match:data => { if(data.substring(0,5) == ':LAMP') { return data.substring(6); } }, //data match. That data will be sent to telemetrypath. Return undefined to discard.
-            telemetrypath:'/projector/lamphours',   //telemetry path. Added to "basepath"
+            telemetrypath:'/dev/projector/lamphours',   //telemetry path. Added to "basepath"
         }
+	*/
         /*,
         {
             id: 'fake-ERR-data-to-test', //unique ID
@@ -109,15 +114,26 @@ module.exports.config = {
             match:data => { if(data == ':ERR') { return 'ERROR!!!!!' } }, 
             telemetrypath:'/projector/error',   //telemetry path. Added to "basepath"
         }*/
-
-        /*
+         /*
+        {
+            id:'lamphours',
+            serialPort:'projector',
+            match:data => { if(data.substring(0,5) == ':LAMP') { return data.substring(6); } },
+            telemetrypath:'/projector/lamphours'
+        }
+*/
         {
             id:'real-lamphours',
             serialPort:'projector',
-            match:data => (if(data.substring(0,5) == ':LAMP') { return data.substring(6); } },
-            telemetrypath:'/projector/lamphours
+            match:data => { 
+                var data = data.toString().replace(/:/g,'');
+                if (data.substring(0,4) == 'LAMP') {
+                    return data.substring(5);
+                }
+            },
+            telemetrypath:'/dev/projector/lamphours'
         }
-        */
+
         
 
     ]
