@@ -12,6 +12,7 @@ module.exports.config = {
         }
     },
     telemetry: {
+        enabled:true,
         broker: 'mqtt broker host/ip',
 	    cliendId: 'clientid',
         username: 'telemetryusername',
@@ -41,7 +42,7 @@ module.exports.config = {
             serialPort:'monitor', //Name of the serial port to use (see up there)
             raw:'ka 01 01\r',         //Raw command to send to the serial port
             repeat:5000,            //Repeat this commande every X ms
-	    telemetrypath:'/dev/monitor/power',
+	        telemetrypath:'/dev/monitor/power',
             telemetryvalue:'1',
             cancel:'tv_power_off',       //Cancel another trigger repeat, match its id
         },
@@ -74,7 +75,7 @@ module.exports.config = {
             repeat:5000,
             cancel:'proj_power_on',
             onStart:true,
-	    telemetrypath:'/dev/projector/power',
+	        telemetrypath:'/dev/projector/power',
             telemetryvalue:'0'
         },
 	{

@@ -19,6 +19,7 @@ var triggersTimers = [];
 
 var codec = undefined;
 var serialIsSet = false;
+var telemetryEnabled = false;
 
 function log(text) {
     if (cretonconfig.config.debug) {
@@ -79,7 +80,7 @@ function processTriggers(text) {
                     } catch { }
                 }
                 writeSerial(trigger.serialPort, trigger.raw);
-                if (trigger.telemetrypath && trigger.telemetryvalue) {
+                if (trigger.telemetrypath && trigger.telemetryvalue && telemetryEnabled) {
                     tel.publish(trigger.telemetrypath, trigger.telemetryvalue);
                 }
                 var intervalTrigger = trigger;
@@ -103,24 +104,24 @@ function setupSerial() {
     for (const port of cretonconfig.config.serialPorts) {
         try {
             port.serialport = new eapserial.SerialPort(port, DEBUG);
-            
+
             if (port.read) {
                 port.serialport.read(data => {
-                    processSerialData(port.name,data);
+                    processSerialData(port.name, data);
                 });
                 port.serialport.feedback(feedback => {
-                    
+
                     var x = getFeedbackPacket(port.name, feedback.f, feedback.d);
                     codec.sendMessage(x);
-                });                
+                });
             }
-            
+
         }
         catch (err) {
             console.log(`SERIAL INIT ERROR: ` + err);
         }
     }
-    
+
     for (const trigger of cretonconfig.config.triggers) {
         if (trigger.onStart) {
             log(`Found on-start trigger. Executing ${trigger.id}`);
@@ -129,13 +130,13 @@ function setupSerial() {
     }
 
     for (const sp of cretonconfig.config.serialParsing) {
-        
-        if (sp.serialPort.substring(0,5) == 'fake-') {
-            setInterval(()=> {
-                processSerialData(sp.serialPort,sp.fakeData);
-            },5000);
+
+        if (sp.serialPort.substring(0, 5) == 'fake-') {
+            setInterval(() => {
+                processSerialData(sp.serialPort, sp.fakeData);
+            }, 5000);
         }
-        
+
     }
     serialIsSet = true;
 }
@@ -143,12 +144,12 @@ function processSerialData(port, data) {
     for (const sp of cretonconfig.config.serialParsing) {
         var telemetryValue = sp.match(data);
         if (telemetryValue) {
-            if (sp.telemetrypath) {
+            if (sp.telemetrypath && telemetryEnabled) {
                 log(`publishing telemetry ${sp.telemetrypath}=${telemetryValue}`);
-                tel.publish(sp.telemetrypath,telemetryValue);
+                tel.publish(sp.telemetrypath, telemetryValue);
             }
         }
-    }   
+    }
 }
 
 function messageReceived(message) {
@@ -171,20 +172,21 @@ function init() {
     console.log(`Starting....`);
     const auth = cretonconfig.config.codec.auth;
     const info = cretonconfig.config.codec.info;
+    telemetryEnabled = cretonconfig.config.telemetry.enabled;
 
     codec = new webexroomssh.Codec(info, auth, cretonconfig.config.debug);
     codec.on('connect', () => {
         console.log(`CRETON: Codec is connected!`);
-	if (!serialIsSet) {
+        if (!serialIsSet) {
             setupSerial();
         }
     });
 
     codec.on('disconnect', reason => {
         console.log(`CRETON: Codec is disconnected. Reason: ${reason}`);
-	setTimeout(() => {
-	    codec.connect();
-	},15000);
+        setTimeout(() => {
+            codec.connect();
+        }, 15000);
     });
 
     codec.on('connecting', () => {
@@ -197,19 +199,19 @@ function init() {
 
     codec.connect();
 
+    if (telemetryEnabled) {
+        tel.init(cretonconfig.config.telemetry, cretonconfig.config.debug);
+        tel.connect(() => {
+            console.log(`Telemetry connected.`);
+            tel.registerCommand(cretonconfig.config.telemetry.basepath + '/dev/creton/cmd', 'shutdown', command => {
+                tel.publish('/dev/creton/cmd', 'ok');
+                setTimeout(() => {
+                    process.exit(1);
+                }, 1000);
 
-    tel.init(cretonconfig.config.telemetry,cretonconfig.config.debug);
-    tel.connect(() => {
-        console.log(`Telemetry connected.`);
-        tel.registerCommand(cretonconfig.config.telemetry.basepath + '/dev/creton/cmd','shutdown',command => {
-            tel.publish('/dev/creton/cmd','ok');
-            setTimeout(() => {
-                process.exit(1);
-            },1000);
-            
+            });
         });
-    });
-
+    }
 }
 
 init();
