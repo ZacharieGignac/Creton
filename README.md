@@ -6,7 +6,9 @@ Testé sur node v12.22.9
 
 ## Hardware
 Testé sur Raspberry Pi 4 (raspbian 11 bullseye)
+
 Testé sur Ubuntu 22.04 LTS
+
 Testé avec les adaptateurs série-USB Startech (avec le contrôleur TexasIntrument ou Prolific)
 
 ## Dépendances / Recompilation
