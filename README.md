@@ -18,6 +18,9 @@ npm uninstall serialport && npm uninstall jsxapi
 npm install serialport && npm install jsxapi
 ```
 
+## Support expérimental pour les drivers d'affichage de la compagnie qui ressemble à "Creton"
+Non documenté pour l'instant.
+
 # Fichier de configuration config.js
 À créer à partir du modèle config.js.example
 ## Section Codec
