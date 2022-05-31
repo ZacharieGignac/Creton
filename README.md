@@ -19,7 +19,7 @@ npm install serialport && npm install jsxapi
 ```
 
 ## Support expérimental pour les drivers d'affichage de la compagnie qui ressemble à "Creton"
-Non documenté pour l'instant.
+Non documenté pour l'instant. Voir le code et les fichiers .json pour reverse-engineering
 
 # Fichier de configuration config.js
 À créer à partir du modèle config.js.example
