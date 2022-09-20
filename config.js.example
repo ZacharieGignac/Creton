@@ -21,9 +21,8 @@ module.exports.config = {
     },
     serialPorts: [
         {
-            name:'monitor',
+            name:'monitor', //not specifying any serial port setting, will load default settings (9600,8,N,1)
             device:'/dev/serial/by-id/usb-Prolific_Technology_Inc._USB-Serial_Controller_D_00000EBA-if00-port0',
-            baudRate:9600,
             delimiter:'\r',
             read:false
         },
@@ -31,6 +30,10 @@ module.exports.config = {
             name:'projector',
             device:'/dev/serial/by-id/usb-Texas_Instruments_TUSB3410_EECode_Ser_10002194-if00-port0',
             baudRate:9600,
+            parity:'none', //none, even, odd
+            stopBits:1,
+            dataBits:8,
+            flowControl:false,
             delimiter:'\r',
             read:true
         }

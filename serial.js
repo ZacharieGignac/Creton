@@ -10,10 +10,22 @@ class SerialPort {
         }
         else {
             this.timeBetweenCommands = (this.config.timeBetweenCommands) ? this.config.timeBetweenCommands : 250;         
+            /* Set default serialport values if not defined in the config */
+            if (!this.config.baudRate) this.config.baudRate = 9600;
+            if (!this.config.parity) this.config.parity = 'none';
+            if (!this.config.stopBits) this.config.stopBits = 1;
+            if (!this.config.dataBits) this.config.dataBits = 8;
+            if (!this.config.flowControl) this.config.flowControl = false;
         }
+
         const sp = require('serialport');
         const Readline = require('@serialport/parser-readline');
-        this.port = new sp.SerialPort({ path:this.config.device, baudRate: this.config.baudRate });
+
+        
+
+        let serialPortConfig = { path:this.config.device, baudRate: this.config.baudRate, parity:this.config.parity, stopBits:this.config.stopBits, dataBits:this.config.dataBits, flowControl:this.config.flowControl };
+        if (this.debug) console.log(serialPortConfig);
+        this.port = new sp.SerialPort(serialPortConfig);
         
         this.port.on('error', err => {
             console.log(`SERIAL PORT ERROR: ${err}`);
@@ -35,7 +47,7 @@ class SerialPort {
             }
         }
         catch (err) {
-            console.log(`ERR checkCOmmandBuffer: ${err}`);
+            console.log(`ERR checkCommandBuffer: ${err}`);
         }
     }
     write(command) {
