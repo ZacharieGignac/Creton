@@ -9,7 +9,7 @@ class SerialPort {
             this.timeBetweenCommands = this.config.driver.Communication.TimeBetweenCommands;
         }
         else {
-            this.timeBetweenCommands = (this.config.timeBetweenCommands) ? this.config.timeBetweenCommands : 250;         
+            this.timeBetweenCommands = (this.config.timeBetweenCommands) ? this.config.timeBetweenCommands : 250;
             /* Set default serialport values if not defined in the config */
             if (!this.config.baudRate) this.config.baudRate = 9600;
             if (!this.config.parity) this.config.parity = 'none';
@@ -21,23 +21,23 @@ class SerialPort {
         const sp = require('serialport');
         const Readline = require('@serialport/parser-readline');
 
-        
 
-        let serialPortConfig = { path:this.config.device, baudRate: this.config.baudRate, parity:this.config.parity, stopBits:this.config.stopBits, dataBits:this.config.dataBits, flowControl:this.config.flowControl };
+
+        let serialPortConfig = { path: this.config.device, baudRate: this.config.baudRate, parity: this.config.parity, stopBits: this.config.stopBits, dataBits: this.config.dataBits, flowControl: this.config.flowControl };
         if (this.debug) console.log(serialPortConfig);
         this.port = new sp.SerialPort(serialPortConfig);
-        
+
         this.port.on('error', err => {
             console.log(`SERIAL PORT ERROR: ${err}`);
         });
-        
+
         this.parser = this.port.pipe(new sp.DelimiterParser({ delimiter: config.delimiter }));
 
         this.commandsBuffer = [];
         setInterval(() => {
             this.checkCommandsBuffer();
         }, this.timeBetweenCommands);
-        
+
     }
     checkCommandsBuffer() {
         try {
