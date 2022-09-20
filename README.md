@@ -58,6 +58,10 @@ serialPorts: [
         name:'moniteur',                                      //Nom du port série. Ce nom est utilisé ailleurs dans la configuration
         device:'/dev/serial/by-id/premier_adaptateur-port0',  //Chemin du port série. Voir dossier /dev/serial/by-id/
         baudRate:9600,                                        //BaudRate, la plupart des appareils AV utilisent 9600
+        parity:'none',                                        //Parité, none, even, odd: none par défaut
+        stopBits:1,                                           //stopBits: 1 par défaut
+        dataBits:8,                                           //dataBits: 8 par défaut
+        flowControl:false,                                    //controle de flow: false par défaut
         delimiter:'\r',                                       //Délimiteur utilisé pour la lecture sur le port série
         read:false                                            //Lecture du port série
     },
