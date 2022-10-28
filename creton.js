@@ -21,16 +21,28 @@ var codec = undefined;
 var serialIsSet = false;
 var telemetryEnabled = false;
 
+function disp(text) {
+    console.log(text);
+}
+
 function log(text) {
     if (cretonconfig.config.debug) {
         console.log(text);
+    }
+}
+function err(text) {
+    console.error(text);
+}
+function warn(text) {
+    if (cretonconfig.config.debug) {
+        console.warn(text);
     }
 }
 
 
 function writeSerial(targetPort, command) {
     var strcmd = command.replace(`\r`, `\\r`);
-    log(`writeSerial port=${targetPort} command=${strcmd}`);
+    log(`[writeSerial] port=${targetPort} command=${strcmd}`);
     try {
         for (const port of cretonconfig.config.serialPorts) {
             if (targetPort == port.name) {
@@ -39,11 +51,11 @@ function writeSerial(targetPort, command) {
         }
     }
     catch (err) {
-        console.log(`Error writing "${strcmd}" to port "${targetPort}": ${err}`);
+        err(`[writeSerial] Error writing "${strcmd}" to port "${targetPort}": ${err}`);
     }
 }
 function serialCommand(targetPort, command, args) {
-    log(`Serial command: targetPort=${targetPort} command=${command} args=${args}`);
+    log(`[serialCommand] targetPort=${targetPort} command=${command} args=${args}`);
     for (const port of cretonconfig.config.serialPorts) {
         if (targetPort == port.name) {
             port.serialport.command(command, args);
@@ -68,13 +80,13 @@ function getFeedbackPacket(source, feedback, data) {
 
 function processTriggers(text) {
     var match = 0;
-    log(`Searching for trigger "${text}"`);
+    log(`[processTriggers] Searching for trigger "${text}"`);
     for (trigger of cretonconfig.config.triggers) {
         try {
             if (text == trigger.text) {
                 match++;
                 if (trigger.cancel) {
-                    log(`Cancelling timer ${trigger.cancel}`);
+                    log(`[processTriggers] Cancelling timer ${trigger.cancel}`);
                     try {
                         clearInterval(triggersTimers[trigger.cancel]);
                     } catch { }
@@ -84,7 +96,7 @@ function processTriggers(text) {
                     tel.publish(trigger.telemetrypath, trigger.telemetryvalue);
                 }
                 var intervalTrigger = trigger;
-                log(`Starting timer ${trigger.id}`);
+                log(`[processTriggers] Starting timer ${trigger.id}`);
                 clearInterval(triggersTimers[trigger.id]);
                 if (trigger.repeat) {
                     triggersTimers[trigger.id] = setInterval(() => {
@@ -94,10 +106,10 @@ function processTriggers(text) {
             }
         }
         catch (err) {
-            console.log(`ERR processTriggers: ${err}`);
+            err(`[processTriggers] ${err}`);
         }
     }
-    log(`Found ${match} match for trigger "${text}"`);
+    log(`[processTriggers] Found ${match} match for trigger "${text}"`);
 }
 
 function setupSerial() {
@@ -118,13 +130,13 @@ function setupSerial() {
 
         }
         catch (err) {
-            console.log(`SERIAL INIT ERROR: ` + err);
+            err(`[setupSerial] Serial initialization error: ` + err);
         }
     }
 
     for (const trigger of cretonconfig.config.triggers) {
         if (trigger.onStart) {
-            log(`Found on-start trigger. Executing ${trigger.id}`);
+            log(`[setupSerial] Found on-start trigger. Executing ${trigger.id}`);
             processTriggers(trigger.text);
         }
     }
@@ -145,7 +157,7 @@ function processSerialData(port, data) {
         var telemetryValue = sp.match(data);
         if (telemetryValue) {
             if (sp.telemetrypath && telemetryEnabled) {
-                log(`publishing telemetry ${sp.telemetrypath}=${telemetryValue}`);
+                log(`[processSerialData] Publishing telemetry ${sp.telemetrypath}=${telemetryValue}`);
                 tel.publish(sp.telemetrypath, telemetryValue);
             }
         }
@@ -169,32 +181,41 @@ function messageReceived(message) {
 }
 
 function init() {
-    console.log(`Starting....`);
+    disp(`[init] Starting....`);
     const auth = cretonconfig.config.codec.auth;
     const info = cretonconfig.config.codec.info;
     telemetryEnabled = cretonconfig.config.telemetry.enabled;
 
     codec = new webexroomssh.Codec(info, auth, cretonconfig.config.debug);
     codec.on('connect', () => {
-        console.log(`CRETON: Codec is connected!`);
+        disp(`[init] Codec is connected!`);
         if (!serialIsSet) {
             setupSerial();
         }
     });
 
     codec.on('disconnect', reason => {
-        console.log(`CRETON: Codec is disconnected. Reason: ${reason}`);
+        err(`[init] Codec is disconnected. Reason: ${reason}`);
         setTimeout(() => {
             codec.connect();
-        }, 15000);
+        }, cretonconfig.config.codec.info.reconnectInterval);
     });
 
     codec.on('connecting', () => {
-        console.log(`CRETON: Codec is connecting.`);
+        disp(`[init] Codec is connecting.`);
     });
 
     codec.on('message', message => {
         messageReceived(message);
+    });
+
+    codec.on('ignorereconnect', reason => {
+        warn(`[init] Ignoring connection request. Reason: ${reason}`);
+    });
+
+    codec.on('maxreconnectreached', attempts => {
+        err(`[init] Max reconnection attempts reached (${attempts}). Exiting with status "EHOSTDOWN 112 Host is down"`);
+        process.exit(112);
     });
 
     codec.connect();
@@ -206,6 +227,7 @@ function init() {
             tel.registerCommand(cretonconfig.config.telemetry.basepath + '/dev/creton/cmd', 'shutdown', command => {
                 tel.publish('/dev/creton/cmd', 'ok');
                 setTimeout(() => {
+                    disp(`[telemetry] shutdown requested by incomming data 'shutdown' on topic /cmd.`);
                     process.exit(1);
                 }, 1000);
 

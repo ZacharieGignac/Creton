@@ -31,6 +31,8 @@ const codecInfo = {
 Events:
     * connect
     * connecting
+    * ignoreconnect [reason]
+    * maxreconnectreached [attempts]
     * disconnect [reason]
     * message [message]
 
@@ -44,11 +46,14 @@ const EVENT_CONNECT = 'connect';
 const EVENT_DISCONNECT = 'disconnect';
 const EVENT_CONNECTING = 'connecting';
 const EVENT_MESSAGE = 'message';
+const EVENT_IGNORECONNECT = 'ignoreconnect';
+const EVENT_MAXRECONNECTREACHED = 'maxreconnectreached';
 
 const DISCONNECTED = 0;
 const CONNECTED = 1;
 const CONNECTING = 2;
 
+var connectionAttemptsFail = 0;
 
 function log(text) {
     if (DEBUG) console.log(text);
@@ -62,7 +67,7 @@ function err(text) {
 
 module.exports.Codec = class Codec {
     constructor(codecInfo, auth, debug = false) {
-        log('CODEC: initializing');
+        log('[wrssh.] initializing');
         DEBUG = debug;
         this.state = DISCONNECTED;
         this.xapi = undefined;
@@ -72,7 +77,11 @@ module.exports.Codec = class Codec {
         this.hbTimer = undefined;
         this.timeout = undefined;
         this.doTimeoutCheck = false;
-        log('CODEC: initialized');
+        console.log(this.codecInfo);
+        if (!this.codecInfo.maxConnectionAttempts) {
+            this.codecInfo.maxConnectionAttempts = 10;
+        }
+        log('[wrssh.] initialized');
     }
 
     on(event, callback) {
@@ -86,30 +95,44 @@ module.exports.Codec = class Codec {
     }
 
     connect() {
-        var that = this;
-        this.state = CONNECTING;
-        this.raiseEvent(EVENT_CONNECTING);
-        console.log(`CODEC: Connecting to ${that.codecInfo.ip}`);
-        that.xapi = jsxapi.connect(`ssh://${that.codecInfo.ip}`, that.auth)
-            .on('error', (errmsg) => {
-                that.state = DISCONNECTED;
-                that.xapi.close();
-                that.raiseEvent(EVENT_DISCONNECT, errmsg);
-                err(`CODEC: Connection error!`);
-		this.stopHearthbeat();
-		that.xapi.close();
-            })
-            .on('ready', async (x) => {
-                that.state = CONNECTED;
-                that.registerPeripheral();
-                that.raiseEvent(EVENT_CONNECT);
-                that.startTimeoutCheck();
-                that.xapi.Event.Message.Send.on(message => {
-                    that.raiseEvent(EVENT_MESSAGE, message);
+        if (this.state == DISCONNECTED) {
+            var that = this;
+            this.state = CONNECTING;
+            this.raiseEvent(EVENT_CONNECTING);
+            console.log(`[wrssh.connect]: Connecting to ${that.codecInfo.ip}`);
+            that.xapi = jsxapi.connect(`ssh://${that.codecInfo.ip}`, that.auth)
+                .on('error', (errmsg) => {
+                    connectionAttemptsFail++;
+                    that.state = DISCONNECTED;
+                    that.xapi.close();
+                    if (connectionAttemptsFail == this.codecInfo.maxConnectionAttempts) {
+                        that.raiseEvent(EVENT_MAXRECONNECTREACHED,this.codecInfo.maxConnectionAttempts);
+                    }
+                    else {
+                        that.raiseEvent(EVENT_DISCONNECT, errmsg);
+                    }
+                    err(`[wrssh.connect] Connection error. ${connectionAttemptsFail}/${this.codecInfo.maxConnectionAttempts}`);
+                    this.stopHearthbeat();
+                    that.xapi.close();
+                })
+                .on('ready', async (x) => {
+                    connectionAttemptsFail = 0;
+                    that.state = CONNECTED;
+                    that.registerPeripheral();
+                    that.raiseEvent(EVENT_CONNECT);
+                    that.startTimeoutCheck();
+                    that.xapi.Event.Message.Send.on(message => {
+                        that.raiseEvent(EVENT_MESSAGE, message);
+                    });
+                    this.startHearthbeat();
                 });
-		this.startHearthbeat();
-            });
+        }
+        else {
+            this.raiseEvent(EVENT_IGNORECONNECT, `Cannot connect while current state is ${this.state}`);
+        }
     }
+
+
 
     registerPeripheral() {
         this.xapi.Command.Peripherals.Connect({
@@ -123,7 +146,7 @@ module.exports.Codec = class Codec {
 
     async timeoutCheck() {
         if (this.state == CONNECTED) {
-            log(`CODEC: PING?`);
+            log(`[wrssh.timeoutCheck] PING?`);
             var that = this;
             this.timeout = setTimeout(() => {
                 that.stopTimeoutCheck();
@@ -133,7 +156,7 @@ module.exports.Codec = class Codec {
                 that.raiseEvent(EVENT_DISCONNECT, 'PING_TIMEOUT');
             }, 5000);
             var systemName = await this.xapi.Config.SystemUnit.Name.get();
-            log(`CODEC: PONG!`);
+            log(`[wrssh.timeoutCheck] PONG!`);
             clearTimeout(this.timeout);
             this.timeout = undefined;
             if (this.doTimeoutCheck) {
@@ -143,21 +166,21 @@ module.exports.Codec = class Codec {
     }
 
     startTimeoutCheck() {
-        log(`CODEC: Starting timeout check`);
+        log(`[wrssh.startTimeoutCheck] Starting timeout check`);
         this.doTimeoutCheck = true;
         this.timeoutCheck();
     }
 
     stopTimeoutCheck() {
-        log(`CODEC: Stopping timeout check`);
+        log(`[wrssh.stopTimeoutCheck] Stopping timeout check`);
         this.doTimeoutCheck = false;
     }
 
     startHearthbeat() {
-        log(`CODEC: Starting hearthbeat`);
+        log(`[wrssh.startHeartbeat] Starting hearthbeat`);
         var that = this;
         this.hbTimer = setInterval(() => {
-            log(`PING?`);
+            log(`[wrssh.startHearthbeat] PING?`);
             that.xapi.Command.Peripherals.HeartBeat({
                 ID: PERIPHERAL_ID
             });
@@ -165,16 +188,16 @@ module.exports.Codec = class Codec {
     }
 
     stopHearthbeat() {
-        log(`CODEC: Stopping hearthbeat`);
+        log(`[wrssh.stopHearthbeat] Stopping hearthbeat`);
         clearTimeout(this.hbTimer);
         this.hbTimer = undefined;
     }
 
     sendMessage(message) {
-        //TEMPORARY FIX, REPLACE ":" WITH NOTHOMG
+        //TEMPORARY FIX, REPLACE ":" WITH NOTHING
         //message = message.toString().replace(/:/g,'');
         this.xapi.Command.Message.Send({ text: message }).catch(err => {
-            console.log(`codec.sendMessage ERROR: ${err.message}`);
+            console.log(`[wrssh.sendMessage] ERROR: ${err.message}`);
         });
     }
 }

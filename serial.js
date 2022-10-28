@@ -51,7 +51,7 @@ class SerialPort {
         }
     }
     write(command) {
-        if (this.debug) console.log(`${this.config.name} WRITE > ${command}`);
+        //if (this.debug) console.log(`${this.config.name} WRITE > ${command}`);
         this.port.write(command);
     }
     read(callback) {
