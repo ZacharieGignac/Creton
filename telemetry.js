@@ -14,29 +14,41 @@ function log(text) {
         console.log(text);
     }
 }
+function err(text) {
+    console.error(text);
+}
+function warn(text) {
+    if (cretonconfig.config.debug) {
+        console.warn(text);
+    }
+}
+function disp(text) {
+    console.log(text);
+}
+
 function sendOnline() {
     client.publish(basePath + '/dev/creton/online', new Date().toLocaleString(), { qos: 1, retain: true });
 }
 
 exports.connect = function (callback) {
-    console.log(`TELEMETRY: Connecting to ${broker}...`);
+    log(`[telemetry.connect] Connecting to ${broker}...`);
     cbConnect = callback;
     client = mqtt.connect('mqtt://' + broker, mqttoptions);
     client.on('connect', event => {
-        log(`TELEMETRY: Connected!`);
+        log(`[telemetry.connect] Connected!`);
         if(cbConnect) cbConnect();
         sendOnline();
         clearInterval(onlineInterval);
         onlineInterval = setInterval(sendOnline,30000);
     });
     client.on('disconnect', event => {
-        console.log(`TELEMETRY: Disconnected from ${broker}...`);
+        err(`[telemetry.disconnect] Disconnected from ${broker}...`);
     });
     client.on('reconnect', event => {
-        console.log(`TELEMETRY: Reconnecting...`);
+        log(`[telemetry.reconnect] Reconnecting...`);
     });
     client.on('error', event => {
-        console.log(event);
+        err(`[telemetry.error] ${event}`);
     });
     client.on('message', (topic,payload) => {
         payload = payload.toString();
@@ -51,7 +63,7 @@ exports.connect = function (callback) {
 }
 
 exports.init = function (config, debug=false) {
-    log(`TELEMETRY: Init started...`);
+    log(`[telemetry.init] Init started...`);
     broker = config.broker;
     basePath = config.basepath;
     console.log(config.clientId);
@@ -67,7 +79,7 @@ exports.init = function (config, debug=false) {
         },
         reconnectPeriod:5000
     };
-    log(`TELEMETRY: Init done!`);
+    log(`[telemetry.init] Init done!`);
 }
 
 exports.publish = function (topic, value, qos=1, retain=true) {
