@@ -81,32 +81,46 @@ function getFeedbackPacket(source, feedback, data) {
 function processTriggers(text) {
     var match = 0;
     log(`[processTriggers] Searching for trigger "${text}"`);
-    for (trigger of cretonconfig.config.triggers) {
-        try {
-            if (text == trigger.text) {
-                match++;
-                if (trigger.cancel) {
-                    log(`[processTriggers] Cancelling timer ${trigger.cancel}`);
-                    try {
-                        clearInterval(triggersTimers[trigger.cancel]);
-                    } catch { }
-                }
-                writeSerial(trigger.serialPort, trigger.raw);
-                if (trigger.telemetrypath && trigger.telemetryvalue && telemetryEnabled) {
-                    tel.publish(trigger.telemetrypath, trigger.telemetryvalue);
-                }
-                var intervalTrigger = trigger;
-                log(`[processTriggers] Starting timer ${trigger.id}`);
-                clearInterval(triggersTimers[trigger.id]);
-                if (trigger.repeat) {
-                    triggersTimers[trigger.id] = setInterval(() => {
-                        writeSerial(intervalTrigger.serialPort, intervalTrigger.raw);
-                    }, trigger.repeat);
+    if (text == `SYSTEM_CRESTRON_REBOOT`) {
+        disp(`[processTriggers] Received SYSTEM_CRESTRON_REBOOT`);
+        process.exit(1);
+    }
+    else if (text == `HW_RESTART`) {
+        disp(`[processTriggers] Received HW_RESTART`);
+        process.exit(1);
+    }
+    else if (text == `SW_RESTART`) {
+        disp(`[processTriggers] Received SW_RESTART`);
+        process.exit(1);
+    }
+    else {
+        for (trigger of cretonconfig.config.triggers) {
+            try {
+                if (text == trigger.text) {
+                    match++;
+                    if (trigger.cancel) {
+                        log(`[processTriggers] Cancelling timer ${trigger.cancel}`);
+                        try {
+                            clearInterval(triggersTimers[trigger.cancel]);
+                        } catch { }
+                    }
+                    writeSerial(trigger.serialPort, trigger.raw);
+                    if (trigger.telemetrypath && trigger.telemetryvalue && telemetryEnabled) {
+                        tel.publish(trigger.telemetrypath, trigger.telemetryvalue);
+                    }
+                    var intervalTrigger = trigger;
+                    log(`[processTriggers] Starting timer ${trigger.id}`);
+                    clearInterval(triggersTimers[trigger.id]);
+                    if (trigger.repeat) {
+                        triggersTimers[trigger.id] = setInterval(() => {
+                            writeSerial(intervalTrigger.serialPort, intervalTrigger.raw);
+                        }, trigger.repeat);
+                    }
                 }
             }
-        }
-        catch (err) {
-            err(`[processTriggers] ${err}`);
+            catch (err) {
+                err(`[processTriggers] ${err}`);
+            }
         }
     }
     log(`[processTriggers] Found ${match} match for trigger "${text}"`);

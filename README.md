@@ -33,6 +33,8 @@ Informations de connexion au codec
         },
         info: {
             ip: '1.1.1.1',                        //Adresse IP du codec, peut aussi être un nom d'hôte
+            maxConnectionAttempts: 10,            //Nombre de tentatives de reconnexions avant de quitter avec le statut 112
+            reconnectInterval:15000,              //Délais entre chaque tentative de reconnexion (ms)
             serialNumber: 'SerialNumberHere',     //Numéro de série à inscrire dans les périphériques
             name: 'Creton'                        //Nom du périphérique ("webexroomssh" sera le ID peu importe le nom inscrit ici)
         }
