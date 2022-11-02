@@ -81,6 +81,9 @@ module.exports.Codec = class Codec {
         if (!this.codecInfo.maxConnectionAttempts) {
             this.codecInfo.maxConnectionAttempts = 10;
         }
+        if (!this.codecInfo.reconnectInterval) {
+            this.codecInfo.reconnectInterval = 15000;
+        }
         log('[wrssh.] initialized');
     }
 
