@@ -1,20 +1,4 @@
-function disp(text) {
-    console.log(text);
-}
 
-function log(text) {
-    if (this.debug) {
-        console.log(text);
-    }
-}
-function err(text) {
-    console.error(text);
-}
-function warn(text) {
-    if (this.debug) {
-        console.warn(text);
-    }
-}
 
 class SerialPort {
     constructor(config, dbg) {
@@ -42,11 +26,11 @@ class SerialPort {
 
 
         let serialPortConfig = { path: this.config.device, baudRate: this.config.baudRate, parity: this.config.parity, stopBits: this.config.stopBits, dataBits: this.config.dataBits, flowControl: this.config.flowControl };
-        log(serialPortConfig);
+        this.log(serialPortConfig);
         this.port = new sp.SerialPort(serialPortConfig);
 
         this.port.on('error', err => {
-            err(`[serial.] ERROR: ${err}`);
+            this.err(`[serial.] ERROR: ${err}`);
         });
 
         this.parser = this.port.pipe(new sp.DelimiterParser({ delimiter: config.delimiter }));
@@ -57,6 +41,23 @@ class SerialPort {
         }, this.timeBetweenCommands);
 
     }
+    disp(text) {
+        console.log(text);
+    }
+    
+    log(text) {
+        if (this.debug) {
+            console.log(text);
+        }
+    }
+    err(text) {
+        console.error(text);
+    }
+    warn(text) {
+        if (this.debug) {
+            console.warn(text);
+        }
+    }
     checkCommandsBuffer() {
         try {
             if (this.commandsBuffer.length > 0) {
@@ -65,7 +66,7 @@ class SerialPort {
             }
         }
         catch (err) {
-            err(`[serial.checkCommandsBuffer] ERROR: ${err}`);
+            this.err(`[serial.checkCommandsBuffer] ERROR: ${err}`);
         }
     }
     write(command) {
@@ -75,11 +76,11 @@ class SerialPort {
     read(callback) {
         this.parser.on('data', data => {
             try {
-                log(`[serial.read] ${this.config.name} READ > ${data}`);
+                this.log(`[serial.read] ${this.config.name} READ > ${data}`);
                 callback(data);
             }
             catch (err) {
-                err(`[serial.read] ERROR: ${err}`);
+                this.err(`[serial.read] ERROR: ${err}`);
             }
         });
     }
@@ -95,7 +96,7 @@ class SerialPort {
                 }
             }
             catch (err) {
-                err(`[serial.feedback] ERROR: ${err}`);
+                this.err(`[serial.feedback] ERROR: ${err}`);
             }
         });
     }
@@ -112,7 +113,7 @@ class SerialPort {
                     this.commandsBuffer.push(driverCommand.Value + this.config.delimiter);
                 }
                 catch (err) {
-                    err(`[serial.command] ERROR: ${err}`);
+                    this.err(`[serial.command] ERROR: ${err}`);
                 }
             }
         }
