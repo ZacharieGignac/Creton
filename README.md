@@ -18,6 +18,13 @@ npm uninstall serialport && npm uninstall jsxapi
 npm install serialport && npm install jsxapi
 ```
 
+## Installation
+* Télécharger la dernière release (zip) et l'extraire.
+* Dans le dossier extrait, copier le fichier install.sh dans le dossier supérieur
+* Rendre le fichier executable (chmod +x)
+* Executer l'installation ./install.sh
+
+
 ## Support expérimental pour les drivers d'affichage de la compagnie qui ressemble à "Creton"
 Non documenté pour l'instant. Voir le code et les fichiers .json pour reverse-engineering
 
