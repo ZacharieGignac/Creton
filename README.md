@@ -24,6 +24,16 @@ npm install serialport && npm install jsxapi
 * Rendre le fichier executable (chmod +x)
 * Executer l'installation ./install.sh
 
+Exemple:
+```
+wget https://github.com/ZacharieGignac/Creton/archive/refs/tags/creton-v0.1.zip
+unzip creton-v01.zip
+cp creton-v01\install.sh .
+chmod +x install.sh
+./install.sh
+
+```
+
 
 ## Support expérimental pour les drivers d'affichage de la compagnie qui ressemble à "Creton"
 Non documenté pour l'instant. Voir le code et les fichiers .json pour reverse-engineering
