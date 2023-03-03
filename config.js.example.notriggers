@@ -1,0 +1,44 @@
+module.exports.config = {
+    debug: true,
+    codec: {
+        auth: {
+            username: 'username',   //username
+            password: 'mypassisgood'    //password
+        },
+        info: {
+            ip: '10.12.48.111',
+            maxConnectionAttempts: 100,
+            reconnectInterval:15000,
+            serialNumber: 'Whatever',
+            name: 'Creton'
+        }
+    },
+    telemetry: { enabled: false },
+    serialPorts:[
+        
+        {
+            name: 'tv1',
+            device: '/dev/serial/by-id/usb-Texas_Instruments_TUSB3410_Boot_Device_TUSB3410-if00-port0',
+            baudRate: 9600,
+            parity: 'none', //none, even, odd
+            stopBits: 1,
+            dataBits: 8,
+            flowControl: false,
+            delimiter: '\r',
+            read: true
+        },
+        {
+            name: 'tv2',
+            device: '/dev/serial/by-id/usb-Texas_Instruments_TUSB3410_Boot_Device_TUSB3410-if00-port1',
+            baudRate: 9600,
+            parity: 'none', //none, even, odd
+            stopBits: 1,
+            dataBits: 8,
+            flowControl: false,
+            delimiter: '\r',
+            read: true
+        }
+    ],
+    triggers: [ ],
+    serialParsing: [ ]
+}
