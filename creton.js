@@ -133,6 +133,8 @@ function setupSerial() {
 
             if (port.read) {
                 port.serialport.read(data => {
+                    var rawDataMessage = getDataPacket(port.name,data);
+                    codec.sendMessage(rawDataMessage);
                     processSerialData(port.name, data);
                 });
                 port.serialport.feedback(feedback => {

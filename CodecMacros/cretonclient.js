@@ -19,10 +19,12 @@ class SerialPort {
             break;
           case 4:
             if (jsm.$.n == this.device) {
-              for (const cb of this._readCallbacks) {
-                cb(jsm.$.d);
+              for (const rc of this._readCallbacks) {
+                rc.callback(jsm.$.d);
               }
             }
+            break;
+          case 5:
             break;
           case 7:
             if (jsm.$.n == this.device) {
@@ -35,9 +37,7 @@ class SerialPort {
             break;
         }
       }
-      catch (e) {
-        console.log('EAP_ERR: ' + e);
-      }
+      catch (e) { }
     });
   }
   initStart() {
@@ -57,7 +57,7 @@ class SerialPort {
     xapi.Command.Message.Send({ Text: JSON.stringify(rawCommand) });
   }
   read(callback) {
-    this._readCallbacks.push(callback)
+    this._readCallbacks.push({ device:this.device, callback:callback });
   }
   feedback(fbName, fbCallback) {
     this._feedbacks.push({ name:fbName, callback:fbCallback});

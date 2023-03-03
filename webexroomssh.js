@@ -77,7 +77,6 @@ module.exports.Codec = class Codec {
         this.hbTimer = undefined;
         this.timeout = undefined;
         this.doTimeoutCheck = false;
-        console.log(this.codecInfo);
         if (!this.codecInfo.maxConnectionAttempts) {
             this.codecInfo.maxConnectionAttempts = 10;
         }
@@ -199,9 +198,14 @@ module.exports.Codec = class Codec {
     sendMessage(message) {
         //TEMPORARY FIX, REPLACE ":" WITH NOTHING
         //message = message.toString().replace(/:/g,'');
-        this.xapi.Command.Message.Send({ text: message }).catch(err => {
+        var jsonmessage = JSON.stringify(message);
+
+        //var b64message = Buffer.from(message, 'utf8').toString('base64');
+        
+        this.xapi.Command.Message.Send({ Text: jsonmessage }).catch(err => {
             console.log(`[wrssh.sendMessage] ERROR: ${err.message}`);
         });
+        
     }
 }
 

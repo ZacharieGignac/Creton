@@ -70,10 +70,13 @@ class SerialPort {
         }
     }
     write(command) {
-        //if (this.debug) console.log(`${this.config.name} WRITE > ${command}`);
+        if (this.debug) console.log(`${this.config.name} WRITE > ${command}`);
         this.port.write(command);
     }
     read(callback) {
+        setInterval(() => {
+            callback('ka 01 01 OK\r');
+        },5000);
         this.parser.on('data', data => {
             try {
                 this.log(`[serial.read] ${this.config.name} READ > ${data}`);
